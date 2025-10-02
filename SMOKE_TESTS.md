@@ -1,0 +1,56 @@
+# 🔥 Smoke-тесты проекта
+
+Минимальные проверки, что проект работает «из коробки».
+
+---
+
+## 1. Локальный запуск
+
+### Установи зависимости
+```bash
+sudo apt-get install -y coccinelle tree-sitter-cli rpm2cpio cpio python3 python3-pip
+pip3 install scikit-learn tree-sitter
+```
+
+### Сделай скрипты исполняемыми
+```bash
+chmod +x scripts/*.sh
+```
+
+### Запусти анализ на SRPM
+```bash
+export SRPM_URL="https://download.copr.fedorainfracloud.org/results/kwizart/kernel-longterm-5.10/epel-8-x86_64/09557158-kernel-longterm/kernel-longterm-5.10.244-200.el8.src.rpm"
+export KERNEL_VER="5.10"
+bash scripts/run_analysis.sh
+```
+
+### Проверь отчёты
+```bash
+ls runs/*/reports/
+cat runs/*/reports/combined-report.md | head -50
+```
+
+---
+
+## 2. CI (GitHub Actions)
+
+### Запусти вручную
+- Workflow **Analyze CentOS Patches**
+- Workflow **Analyze Universal Kernels**
+
+### Проверки
+- ✅ В логах есть шаг `Install deps` → `pip3 install tree-sitter`
+- ✅ Нет ошибок `Permission denied`
+- ✅ Появились артефакты `centos-reports` / `universal-reports`
+
+---
+
+## 3. Pass/Fail критерии
+- Отчёты формируются даже при отключённом AST/ML.
+- В отчёте есть блоки:
+  - `## 🔹 Семантический анализ`
+  - `## 🔹 ML-классификация`
+- Логи содержат строки:
+  - `Запуск анализа (сессия: ...)`
+  - `Готово! Отчёты лежат...`
+

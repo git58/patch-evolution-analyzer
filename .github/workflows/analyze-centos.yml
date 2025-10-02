@@ -20,7 +20,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y coccinelle tree-sitter-cli rpm2cpio cpio python3 python3-pip
-          pip3 install scikit-learn
+          pip3 install scikit-learn tree-sitter
 
       - name: Make scripts executable
         run: chmod +x scripts/*.sh

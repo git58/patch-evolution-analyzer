@@ -11,12 +11,20 @@ from .semantic_diff import SemanticDiff
 from .struct_init_finder import StructInitFinder
 from .ml_classifier import MLClassifier
 
+
 class ReportGenerator:
     def __init__(self, session_dir: str):
         self.session_dir = session_dir
         self.ast = ASTDiff()
         self.semantic = SemanticDiff()
-        self.ml = MLClassifier()
+        try:
+            self.ml = MLClassifier()
+            self.ml_enabled = True
+        except Exception as e:
+            print(f"[WARN] ML-классификатор не инициализирован: {e}")
+            self.ml = None
+            self.ml_enabled = False
+
         self.reports_dir = os.path.join(session_dir, "reports")
         os.makedirs(self.reports_dir, exist_ok=True)
 
@@ -27,12 +35,18 @@ class ReportGenerator:
         # AST
         ast_changes = self.ast.diff(old_code, new_code)
         report_lines.append("## 🔹 AST-анализ")
-        report_lines.extend([f"- {c}" for c in ast_changes])
+        if ast_changes:
+            report_lines.extend([f"- {c}" for c in ast_changes])
+        else:
+            report_lines.append("- AST-анализ отключён или не дал результатов")
 
         # Семантика
         sem_hints = self.semantic.analyze(old_code, new_code)
         report_lines.append("\n## 🔹 Семантический анализ")
-        report_lines.extend([f"- {h}" for h in sem_hints])
+        if sem_hints:
+            report_lines.extend([f"- {h}" for h in sem_hints])
+        else:
+            report_lines.append("- Семантических изменений не найдено")
 
         # Поиск struct init (пример для sched_domain)
         finder = StructInitFinder("sched_domain")
@@ -44,9 +58,12 @@ class ReportGenerator:
             report_lines.append("- Не найдено")
 
         # ML классификация
-        classification = self.ml.classify(new_code)
         report_lines.append("\n## 🔹 ML-классификация")
-        report_lines.append(f"- {classification}")
+        if self.ml_enabled and self.ml:
+            classification = self.ml.classify(new_code)
+            report_lines.append(f"- {classification}")
+        else:
+            report_lines.append("- ML отключён или модель недоступна")
 
         return "\n".join(report_lines)
 
@@ -65,7 +82,10 @@ class ReportGenerator:
                 if os.path.exists(path):
                     f.write(open(path, encoding="utf-8").read())
                     f.write("\n\n")
+                else:
+                    f.write(f"_Отчёт для {v} не найден_\n\n")
         print(f"[OK] Сохранён объединённый отчёт: {combined_path}")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -83,6 +103,7 @@ def main():
         rg.save_report(v, content)
 
     rg.save_combined_report(versions)
+
 
 if __name__ == "__main__":
     main()

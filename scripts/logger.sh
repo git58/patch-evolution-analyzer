@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # Универсальный логгер с уровнями INFO/WARN/ERROR
+# Использует SESSION_LOGDIR (из run_analysis.sh), иначе пишет в runs/logs
 
 set -euo pipefail
 
-LOGDIR="runs/logs"
+if [ -n "${SESSION_LOGDIR:-}" ]; then
+  LOGDIR="$SESSION_LOGDIR"
+else
+  LOGDIR="runs/logs"
+fi
+
 mkdir -p "$LOGDIR"
 LOGFILE="$LOGDIR/run.log"
 FALLBACKFILE="$LOGDIR/fallback.log"
