@@ -22,7 +22,7 @@ class StructInitFinder:
         )
         # Паттерн на упрощённое обнуление: struct foo bar = {0};
         self.pattern_zero = re.compile(
-            rf"{struct_name}\s+\w+\s*=\s*{{0}}", re.MULTILINE
+            rf"{struct_name}\s+\w+\s*=\s*\\{{0\\}}", re.MULTILINE
         )
 
     def find_inits(self, code: str) -> List[str]:
