@@ -14,6 +14,12 @@ mkdir -p "$LOGDIR"
 LOGFILE="$LOGDIR/run.log"
 FALLBACKFILE="$LOGDIR/fallback.log"
 
+# 📌 При старте сессии сообщаем, где искать логи
+if [ ! -f "$LOGDIR/.logger_init" ]; then
+  echo "[INFO] Логи этой сессии сохраняются в: $LOGFILE" | tee -a "$LOGFILE"
+  touch "$LOGDIR/.logger_init"
+fi
+
 timestamp() {
   date +"%Y-%m-%d %H:%M:%S"
 }

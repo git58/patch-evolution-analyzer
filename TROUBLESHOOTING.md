@@ -19,14 +19,25 @@ pip3 install tree-sitter
 ---
 
 ## AST всегда отключён
-**Причина:** отсутствует `parser.so` или файл `DISABLED_AST` в `build/parsers/c/`.  
+**Сообщение:** `[AST disabled]`  
+**Причины:**
+- В `vendor/c/` отсутствует `parser.so`
+- Есть маркер `build/parsers/c/DISABLED_AST`
+- Ошибка в компиляции `parser.so`
+
 **Решение:**
-- Убедиться, что в `vendor/c/` есть `parser.so`
-- Или задать путь к исходникам:
-  ```bash
-  export GRAMMAR_SRC=/path/to/tree-sitter-c
-  bash scripts/build_treesitter.sh c
-  ```
+1. Собрать prebuilt parser.so:
+   ```bash
+   bash scripts/build_prebuilt.sh
+   git add vendor/c/parser.so
+   git commit -m "Add prebuilt parser.so"
+   ```
+2. Убедиться, что в логе видно строку:
+   ```
+   [WARN] Используем prebuilt-грамматику: vendor/c/parser.so
+   [OK] AST будет доступен через prebuilt (...)
+   ```
+3. Проверить, что нет файла `build/parsers/c/DISABLED_AST`
 
 ---
 
@@ -54,3 +65,28 @@ rpm2cpio source.rpm | bsdtar -xvf -
 **Решение:**
 - Взять патч вручную с kernel.org
 - Положить в `patches/rt/`
+
+---
+
+## Python-анализатор завершился с ошибкой
+**Сообщение:**  
+```
+[ERROR] Python-анализатор завершился с ошибкой
+```
+
+**Причины:**
+- Ошибка в AST-модуле (`parser.so` не найден или повреждён)
+- Ошибка в ML-модуле (датасет пустой или сломанный)
+- Внутренняя ошибка Python
+
+**Что важно:**
+- Даже если Python-анализатор упал, **частичные отчёты и логи сохраняются** в `runs/<timestamp>-<codename>/`
+- CI **не должен падать насмерть**: анализатор работает в "graceful" режиме
+
+**Решение:**
+1. Проверить `runs/<session>/logs/run.log` — там виден модуль, на котором всё упало.  
+2. Исправить ошибку (см. разделы AST / ML выше).  
+3. Перезапустить анализ:
+   ```bash
+   bash scripts/run_analysis.sh
+   ```
