@@ -1,0 +1,4 @@
+diff_text	label
+"- init_timer() + timer_setup()"	бэкпорт багфикса
+"- cpu_power + arch_scale_cpu_capacity()"	оптимизация
+"- spinlock_t + raw_spinlock_t"	багфикс производительности

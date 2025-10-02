@@ -1,0 +1,53 @@
+name: Analyze Universal Kernels
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_versions:
+        description: "Список версий ядер или каталогов (через запятую)"
+        required: false
+        default: "5.10,6.1,6.12"
+      enable_ast:
+        description: "Включить AST-анализ (true/false)"
+        required: false
+        default: "true"
+      apply_rt:
+        description: "Применить RT-патч (auto/hardcoded/false)"
+        required: false
+        default: "auto"
+      use_ml:
+        description: "Использовать ML-классификатор (true/false)"
+        required: false
+        default: "true"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y coccinelle tree-sitter-cli rpm2cpio cpio python3 python3-pip
+          pip3 install scikit-learn
+
+      - name: Run analysis
+        run: |
+          mkdir -p runs
+          IFS=',' read -ra VERS <<< "${{ github.event.inputs.kernel_versions }}"
+          for v in "${VERS[@]}"; do
+            export KERNEL_VER="$v"
+            export ENABLE_AST="${{ github.event.inputs.enable_ast }}"
+            export APPLY_RT="${{ github.event.inputs.apply_rt }}"
+            export USE_ML="${{ github.event.inputs.use_ml }}"
+            bash scripts/run_analysis.sh
+          done
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-reports
+          path: runs/

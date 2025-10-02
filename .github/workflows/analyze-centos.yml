@@ -1,0 +1,40 @@
+name: Analyze CentOS Patches
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_versions:
+        description: "Версии ядер для анализа"
+        required: false
+        default: "5.10,6.1"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y coccinelle tree-sitter-cli rpm2cpio cpio python3 python3-pip
+          pip3 install scikit-learn
+
+      - name: Fetch SRPM and run analysis
+        run: |
+          mkdir -p runs
+          export SRPM_URL="https://download.copr.fedorainfracloud.org/results/kwizart/kernel-longterm-5.10/epel-8-x86_64/09557158-kernel-longterm/kernel-longterm-5.10.244-200.el8.src.rpm"
+          export KERNEL_VER="5.10"
+          bash scripts/run_analysis.sh
+          
+          export SRPM_URL="https://download.copr.fedorainfracloud.org/results/kwizart/kernel-longterm-6.1/centos-stream-9-x86_64/09600929-kernel-longterm/kernel-longterm-6.1.154-200.el9.src.rpm"
+          export KERNEL_VER="6.1"
+          bash scripts/run_analysis.sh
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: centos-reports
+          path: runs/
