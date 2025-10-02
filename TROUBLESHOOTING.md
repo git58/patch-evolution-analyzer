@@ -24,6 +24,7 @@ pip3 install tree-sitter
 - В `vendor/c/` отсутствует `parser.so`
 - Есть маркер `build/parsers/c/DISABLED_AST`
 - Ошибка в компиляции `parser.so`
+- Конфликт API Tree-sitter
 
 **Решение:**
 1. Собрать prebuilt parser.so:
@@ -32,12 +33,20 @@ pip3 install tree-sitter
    git add vendor/c/parser.so
    git commit -m "Add prebuilt parser.so"
    ```
-2. Убедиться, что в логе видно строку:
-   ```
-   [WARN] Используем prebuilt-грамматику: vendor/c/parser.so
-   [OK] AST будет доступен через prebuilt (...)
-   ```
-3. Проверить, что нет файла `build/parsers/c/DISABLED_AST`
+2. Проверить, какой API Tree-sitter используется (см. таблицу ниже).  
+3. Убедиться, что в логе есть одна из строк:
+   - `[AST] Используем API: tree_sitter_languages (lang=c)`
+   - `[AST] Используем API: tree_sitter (старый set_language)`
+   - `[AST] Используем API: tree_sitter (новый .language property)`
+   - или предупреждение `[AST] Не удалось инициализировать Tree-sitter: ...`
+
+### ℹ️ Таблица API Tree-sitter
+| Пакет в окружении            | Какой API используется                  | Пример строки в логе                             |
+|-------------------------------|------------------------------------------|--------------------------------------------------|
+| `tree-sitter-languages`       | Новый API через `get_parser("c")`        | `[AST] Используем API: tree_sitter_languages`    |
+| `tree-sitter==0.20.x`         | Старый API через `parser.set_language()` | `[AST] Используем API: tree_sitter (старый set_language)` |
+| `tree-sitter>=0.21.x`         | Новый property `parser.language = ...`   | `[AST] Используем API: tree_sitter (новый .language property)` |
+| Ничего не установлено / сломано | AST отключён                           | `[AST] Не удалось инициализировать Tree-sitter`  |
 
 ---
 

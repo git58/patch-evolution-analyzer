@@ -15,6 +15,18 @@ SESSION="$RUNS_DIR/$TS-$CODENAME"
 mkdir -p "$SESSION/reports" "$SESSION/logs" "$SESSION/tmp"
 export SESSION_LOGDIR="$SESSION/logs"
 
+# === Подготовка окружения ===
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$SCRIPT_DIR/.."
+
+# Проверка и авто-чин окружения Tree-sitter
+if [ -f "$PROJECT_ROOT/scripts/check_ast_env.sh" ]; then
+    echo "[INFO] Проверяем окружение Tree-sitter..."
+    bash "$PROJECT_ROOT/scripts/check_ast_env.sh"
+else
+    echo "[WARN] check_ast_env.sh не найден — окружение не проверено"
+fi
+
 # Загружаем логгер (после экспорта SESSION_LOGDIR)
 source "$ROOT_DIR/scripts/logger.sh"
 

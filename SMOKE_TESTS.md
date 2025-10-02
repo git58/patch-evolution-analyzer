@@ -8,8 +8,8 @@
 
 ### Установи зависимости
 ```bash
-sudo apt-get install -y coccinelle tree-sitter-cli rpm2cpio cpio python3 python3-pip
-pip3 install scikit-learn tree-sitter
+sudo apt-get install -y coccinelle rpm2cpio cpio python3 python3-pip gcc
+pip3 install -r requirements.txt
 ```
 
 ### Сделай скрипты исполняемыми
@@ -40,6 +40,14 @@ cat runs/*/reports/combined-report.md | head -50
   - `Запускаем Python-анализатор`
   - `Готово! Отчёты лежат...`
 
+### Проверь AST API
+- В `run.log` должна быть строка одного из видов:
+  - `[AST] Используем API: tree_sitter_languages (lang=c)`
+  - `[AST] Используем API: tree_sitter (старый set_language)`
+  - `[AST] Используем API: tree_sitter (новый .language property)`
+- Если API не удалось инициализировать, будет предупреждение:
+  - `[AST] Не удалось инициализировать Tree-sitter: ...`
+
 ---
 
 ## 2. CI (GitHub Actions)
@@ -49,7 +57,7 @@ cat runs/*/reports/combined-report.md | head -50
 - Workflow **Analyze Universal Kernels**
 
 ### Проверки
-- ✅ В логах есть шаг `Install deps` → `pip3 install tree-sitter`
+- ✅ В логах есть шаг `Install deps` → `pip3 install -r requirements.txt`
 - ✅ Нет ошибок `Permission denied`
 - ✅ Появились артефакты `centos-reports` / `universal-reports`
 
@@ -64,3 +72,4 @@ cat runs/*/reports/combined-report.md | head -50
   - `Логи этой сессии сохраняются в: .../run.log`
   - `Запуск анализа (сессия: ...)`
   - `Готово! Отчёты лежат...`
+  - `[AST] Используем API: ...` (или предупреждение об отключении)

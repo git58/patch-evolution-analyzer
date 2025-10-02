@@ -1,0 +1,11 @@
+# Базовые пакеты
+scikit-learn
+scipy
+joblib
+threadpoolctl
+
+# Tree-sitter (только базовый API)
+tree-sitter==0.20.4
+
+# Для работы с SRPM
+rpmfile
